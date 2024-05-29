@@ -12,7 +12,9 @@ AF_DCMotor driver_2(3, MOTOR12_8KHZ);
 AF_DCMotor driver_3(4, MOTOR12_8KHZ);
 
 static int scalar = 0;
+static int angle = 0;
 void setup() {
+  scalar = 50;
   // put your setup code here, to run once:
   engage.setSpeed(60);
   driver_1.setSpeed(60);
@@ -24,8 +26,12 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  scalar = 200;
-  roll_angle(60);
+  angle = (angle + 20) % 360;
+  Serial.print("Angle: ");
+  Serial.print(angle);
+  Serial.print("\n");
+  roll_angle(angle);
+  run_engage();
 }
 
 // Use scalar to control speed. Set roof and floor to ensure motor ratios are consistent
@@ -33,9 +39,18 @@ void roll_speed (double ratio_1, double ratio_2, double ratio_3) {
   double motorSpeeds[3];
   // Normalize motor contributions to match the desired speed
   double sumContributions = abs(ratio_1) + abs(ratio_2) + abs(ratio_3);
+  
   motorSpeeds[0] = scalar * (ratio_1 / sumContributions);
   motorSpeeds[1] = scalar * (ratio_2 / sumContributions);
   motorSpeeds[2] = scalar * (ratio_3 / sumContributions);
+  Serial.println("           A        B       C");
+  Serial.print("Speeds   ");
+  Serial.print(motorSpeeds[0]);
+  Serial.print("   ");
+  Serial.print(motorSpeeds[1]);
+  Serial.print("   ");
+  Serial.print(motorSpeeds[2]);
+  Serial.print("\n");
 
   // probs change speed to a global variable
   driver_1.setSpeed(motorSpeeds[0]);
@@ -45,28 +60,11 @@ void roll_speed (double ratio_1, double ratio_2, double ratio_3) {
   driver_1.run(FORWARD);
   driver_2.run(FORWARD);
   driver_3.run(FORWARD);
-
-  // if (ratio_1 < 0) {
-  //   driver_1.run(BACKWARD);
-  // } else {
-  //   driver_1.run(FORWARD);
-  // }
-  // if (ratio_2 < 0) {
-  //   driver_2.run(BACKWARD);
-  // } else {
-  //   driver_2.run(FORWARD);
-  // }
-  // if (ratio_3 < 0) {
-  //   driver_3.run(BACKWARD);
-  // } else {
-  //   driver_3.run(FORWARD);
-  // }
 }
 
 // Calls roll_speed with percentages as arguments
 // Calculates percentage of each motor required for a direction
 void roll_angle(uint8_t angle) {
-  Serial.println("Test");
   int a = 0;
   int b = 0;
   int c = 0;
